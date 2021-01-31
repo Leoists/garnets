@@ -95,9 +95,9 @@ def generate_planetary_masses(star, inner_dust, outer_dust, do_moons=True):
 
             if canidate.mass > PROTOPLANET_MASS:
                 coalesce_planetesimals(disk, planets, canidate, do_moons)
-                logging.info("\tsuccess.")
+                logging.info("\tsuccess.\n")
             else:
-                logging.info("\tfailed due to large neighbor.")
+                logging.info("\tfailed due to large neighbor.\n")
         else:
             sequential_failures += 1
     return planets
@@ -113,7 +113,7 @@ def convert_planetesimal_to_protoplanet(planetesimal):
 
 
 def convert_planetesimal_to_protomoon(planetesimal, planet):
-    print("Capturing a protomoon.")
+    print("     Capturing a protomoon.")
     return Protomoon(
         protoplanet=planet,
         orbit=Orbit(
@@ -130,7 +130,7 @@ def coalesce_planetesimals(disk, planets, canidate, do_moons):
 
     # First we try to find an existing planet with an over-lapping orbit.
     for planet in planets:
-        print("Out of order", planet, canidate)
+        #print("Out of order", planet, canidate)
 
         diff = planet.orbit.a - canidate.orbit.a
 
@@ -390,8 +390,12 @@ def generate_planet(protoplanet, star, random_tilt=0, planet_id=None, do_gases=T
             he_life = gas_life(HELIUM, planet)
 
             if (h2_life < star.age):
-
-                h2_loss = ((1.0 - (1.0 / exp(star.age / h2_life))) * h2_mass)
+                #math.exp with a value above 709 results in a math range error
+                #this is a dumb fix. STH 2021-0131
+                if (star.age / h2_life)>709:
+                    h2_loss = ((1.0 - (1.0 / exp(709.0))) * h2_mass)
+                else:
+                    h2_loss = ((1.0 - (1.0 / exp(star.age / h2_life))) * h2_mass)
 
                 planet.gas_mass -= h2_loss
                 planet.mass -= h2_loss
